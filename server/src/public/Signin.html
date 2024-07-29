@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In Page</title>
+</head>
+<body>
+    <input id = "username" placeholder="username"/>
+    <br/>
+    <input id="password" type="password" placeholder="password"/>
+    <br/>
+    <button id="send-btn">Sign in</button>
+    <script>
+        const username = document.getElementById("username");
+        const password = document.getElementById("password");
+        const sendButton = document.getElementById("send-btn");
+
+        sendButton.addEventListener("click", () => {
+            function callback2(data){
+                localStorage.setItem("token",data.data.token)
+                window.location.href = '/user/dashboard'
+            }
+
+            function callback1(resp) {
+               resp.json().then(callback2);
+            }
+
+            fetch("http://localhost:3000/user/signin", {
+                method: "POST",
+                body: JSON.stringify({
+                    username: username.value,
+                    password: password.value
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(callback1)
+        })
+    </script>
+</body>
+</html>

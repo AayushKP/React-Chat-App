@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <style>
+        .appbar-class {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 10;
+        }
+        .class-1 {
+            display: flex;
+        }
+        .new-class { 
+            display: none;
+        }
+        .user-message {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="appbar-class">
+        <div>
+            ChatApp
+        </div>
+        <div id="user" class="class-1" class="new-class">
+
+        </div>
+    </div>
+    <a href="/user/user-to-connect" class="user-class" >userToConnect</a>
+    <div class="class-2" id = "chat-section" class="new-class">
+        
+    </div>
+    <div class="user-message" id="user-msg">
+        <div id="second-user">
+
+        </div>
+        <div id="message-section">
+
+        </div>
+        <div >
+            <input id="send-message" placeholder="Send Messages"/>
+            <button id="msg-btn">Send</button>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const token = localStorage.getItem("token");
+        const user = document.getElementById("user");
+        const chats = document.getElementById("chat-section");
+        const messages = document.getElementById("message-section");
+        const messageSendButton = document.getElementById("msg-btn");
+
+        function callback2(data) {
+            console.log("logged in user:",data);
+            const userData = data.data;
+            const username = document.createElement("div");
+            username.innerHTML = userData.username
+
+            const logoutBtn = document.createElement("button");
+            logoutBtn.innerHTML = "Logout"
+            logoutBtn.addEventListener("click", (e) => {
+                localStorage.setItem("token",null);
+                ((e) => {
+                    socket.emit('leave private room', (userData));
+                })
+                window.location.href="/chat-app";
+            })
+            document.getElementById("user").classList.remove("new-class");
+            user.appendChild(username);
+            user.appendChild(logoutBtn);
+    
+            socket.emit('join private room',(userData));
+        }
+
+        function callback(resp){
+            resp.json().then(callback2);
+        }
+        
+        fetch("http://localhost:3000/user/me", {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        }).then(callback)
+
+        function sendMessage(data) {
+            console.log("message data:", data);
+            const chat = data.data.chat;
+            const message = data.data.message;
+            const messageElement = document.createElement("div");
+            messageElement.innerHTML = message.content; 
+            messages.appendChild(messageElement);
+
+            socket.emit('send message', chat, message);
+        } 
+        
+        function sendMessageResponse(resp){
+            resp.json().then(sendMessage);
+        }
+
+        function appearMessage(data) {
+            console.log("message appear: " , data);
+            document.getElementById("user").classList.add("new-class");
+            document.getElementById("chat-section").classList.add("new-class");
+            document.getElementById("user-msg").classList.remove("user-message");
+            const username = data.data.username;
+            const usernameElement = document.createElement("div");
+            usernameElement.innerHTML = username;
+            document.getElementById("second-user").appendChild(usernameElement);
+            const message = data.data.chat.message;
+            for(let i = 0;i < message.length;i++){
+                const messageElement = document.createElement("div");
+                messageElement.innerHTML = message[i].content; 
+                messages.appendChild(messageElement);
+            }
+
+            const chat = data.data.chat;
+            messageSendButton.addEventListener("click", () =>{
+                const sendMessage = document.getElementById("send-message").value;
+                fetch("http://localhost:3000/user/send-message", {
+                    method:"POST",
+                    body: JSON.stringify({
+                        chat: chat,
+                        content: sendMessage
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                }).then(sendMessageResponse);
+            })
+        }
+        function messageResponse(resp) {
+            resp.json().then(appearMessage)
+        }
+
+        function chatAppend(data) {
+            document.getElementById("chat-section").classList.remove("new-class");
+            console.log("all chats of user: ",data);
+            const friendData = data.data.friends;
+            const chatData = data.data.chats;
+            const token = localStorage.getItem("token");
+            for(let i = 0;i < friendData.length;i++){
+                const chatElement = document.createElement("button");
+                chatElement.innerHTML = friendData[i].username;
+                const user = chatData[i];
+                const id = friendData[i]._id
+                chatElement.addEventListener("click", () => {
+                fetch("http://localhost:3000/user/message", {
+                    method: "GET",
+                    headers: {
+                        "Conetnt-Type": "application/json",
+                        "Authorization": "Bearer "+ token,
+                        "second": user,
+                        "username": friendData[i].username
+                    }
+                }).then(messageResponse)
+                })
+                chats.appendChild(chatElement);
+            }
+        }
+
+        function chatRespones(resp) {
+            resp.json().then(chatAppend)
+        }
+
+        fetch("http://localhost:3000/user/all-chat", {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        }).then(chatRespones)
+
+        socket.on("message", (message) => {
+            const messageElement = document.createElement("div");
+            messageElement.innerHTML = message;
+            messages.appendChild(messageElement);
+        })
+    </script>
+</body>
+</html>

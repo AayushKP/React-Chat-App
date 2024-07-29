@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chatApp</title>
+    <style>
+        .appbar-class {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 10;
+        }
+        .btn-class {
+            display: flex;
+            padding-top: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="appbar-class">
+        <div>
+            <h4>ChatApp</h4>
+        </div>
+        <div class="btn-class">
+            <button id="signup-btn">Signup</button>
+            <button id="signin-btn">Signin</button>
+        </div>
+    </div>
+    <script>
+        const signupButton = document.getElementById("signup-btn");
+        const signinButton = document.getElementById("signin-btn");
+        signupButton.addEventListener("click", () => {
+            window.location.href = '/chat-app/signup'
+        })
+        signinButton.addEventListener("click", () => {
+            window.location.href = '/chat-app/signin'
+        })
+    </script>
+</body>
+</html>

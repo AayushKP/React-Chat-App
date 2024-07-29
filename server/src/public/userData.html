@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Other Users To Connect</title>
+    <style>
+        .user-class {
+            display: flex;
+            justify-content: flex-start;
+            padding-top: 10;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h2>Connect With Another User</h>
+    </div>
+    <div id="all-user">
+    
+    </div>
+    <script>
+        const parentElement = document.getElementById("all-user");
+        const token = localStorage.getItem("token");
+
+        function appendUserMessage(chatdata){
+            console.log(chatdata);
+            window.location.href = "/user/user-to-connect";
+        }
+
+        function appendUser(data) {
+            console.log(data);
+            const newData = data.data;
+
+            for(var i = 0;i < newData.length;i++){
+                const childElement = document.createElement('div');
+                const grandChild1 = document.createElement('span');
+                grandChild1.innerHTML = newData[i].username;
+                const grandChild2 = document.createElement('button');
+                grandChild2.innerHTML = "connect";
+                const user = newData[i];
+                const id = newData[i]._id
+                console.log(id);
+                grandChild2.addEventListener("click", () => {
+                    fetch(`http://localhost:3000/user/createChat`, {
+                        method:"POST",
+                        body: JSON.stringify({
+                            secondUser: user
+                        }),
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        }
+                    }).then((resp) => {
+                        resp.json().then(appendUserMessage)
+                    })
+                })
+                childElement.appendChild(grandChild1);
+                childElement.appendChild(grandChild2)
+                parentElement.appendChild(childElement);
+            }
+        }
+
+        function allUserResponse(resp) {
+            resp.json().then(appendUser)
+        }
+
+        fetch("http://localhost:3000/user/fetch-users", {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        }).then(allUserResponse)
+    </script>
+</body>
+</html>

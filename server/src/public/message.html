@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="messages">
+
+    </div>
+    <script>
+        const token = localStorage.getItem("token");
+        function appearMessage(data) {
+            console.log(data);
+        }
+        function messageResponse(resp) {
+            resp.json().then(appearMessage)
+        }
+        fetch("http://localhost:3000/user/message", {
+            method: "GET",
+            headers: {
+                "Conetnt-Type": "application/json",
+                "Authorization": "Bearer "+ token
+            }
+        }).then(messageResponse)
+</script>
+</body>
+</html>
